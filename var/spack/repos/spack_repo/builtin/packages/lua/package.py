@@ -273,45 +273,45 @@ class Lua(LuaImplPackage):
 
     def _build_msvc(self, spec, prefix):
         core_sources = [
-            'lapi.c', 'lcode.c', 'lctype.c', 'ldebug.c', 'ldo.c', 'ldump.c',
-            'lfunc.c', 'lgc.c', 'llex.c', 'lmem.c', 'lobject.c', 'lopcodes.c',
-            'lparser.c', 'lstate.c', 'lstring.c', 'ltable.c', 'ltm.c',
-            'lundump.c', 'lvm.c', 'lzio.c'
+            "lapi.c", "lcode.c", "lctype.c", "ldebug.c", "ldo.c", "ldump.c",
+            "lfunc.c", "lgc.c", "llex.c", "lmem.c", "lobject.c", "lopcodes.c",
+            "lparser.c", "lstate.c", "lstring.c", "ltable.c", "ltm.c",
+            "lundump.c", "lvm.c", "lzio.c"
         ]
         lib_sources = [
-            'lauxlib.c', 'lbaselib.c', 'lcorolib.c', 'ldblib.c', 'liolib.c',
-            'lmathlib.c', 'loadlib.c', 'loslib.c', 'lstrlib.c', 'ltablib.c',
-            'lutf8lib.c', 'linit.c'
+            "lauxlib.c", "lbaselib.c", "lcorolib.c", "ldblib.c", "liolib.c",
+            "lmathlib.c", "loadlib.c", "loslib.c", "lstrlib.c", "ltablib.c",
+            "lutf8lib.c", "linit.c"
         ]
 
-        with working_dir(join_path(self.stage.source_path, 'src')):
+        with working_dir(join_path(self.stage.source_path, "src")):
             compiler = Executable(self.compiler.cc)
 
-            cflags = ['/O2', '/W3', '/c', '/DLUA_BUILD_AS_DLL', '/DLUA_COMPAT_5_3']
+            cflags = ["/O2", "/W3", "/c", "/DLUA_BUILD_AS_DLL", "/DLUA_COMPAT_5_3"]
 
             all_sources = core_sources + lib_sources
             obj_files = []
             for src in all_sources:
-                obj = src.replace('.c', '.obj')
-                compiler(*cflags, '/Fo' + obj, src)
+                obj = src.replace(".c", ".obj")
+                compiler(*cflags, "/Fo" + obj, src)
                 obj_files.append(obj)
 
-            dll_name = 'lua54.dll'
-            compiler('/LD', '/Fe' + dll_name, *obj_files)
+            dll_name = "lua54.dll"
+            compiler("/LD", "/Fe" + dll_name, *obj_files)
 
-            compiler(*cflags, '/Folua.obj', 'lua.c')
-            compiler('/Felua.exe', 'lua.obj', 'lua54.lib')
+            compiler(*cflags, "/Folua.obj", "lua.c")
+            compiler("/Felua.exe", "lua.obj", "lua54.lib")
 
-            static_cflags = ['/O2', '/W3', '/c', '/DLUA_COMPAT_5_3']
-            compiler(*static_cflags, '/Foluac.obj', 'luac.c')
+            static_cflags = ["/O2", "/W3", "/c", "/DLUA_COMPAT_5_3"]
+            compiler(*static_cflags, "/Foluac.obj", "luac.c")
 
             static_obj_files = []
             for src in all_sources:
-                obj = src.replace('.c', '_static.obj')
-                compiler(*static_cflags, '/Fo' + obj, src)
+                obj = src.replace(".c", "_static.obj")
+                compiler(*static_cflags, "/Fo" + obj, src)
                 static_obj_files.append(obj)
 
-            compiler('/Feluac.exe', 'luac.obj', *static_obj_files)
+            compiler("/Feluac.exe", "luac.obj", *static_obj_files)
 
     def _build_unix(self, spec, prefix, target):
         make_args = ["CC={0} -std=gnu99 {1}".format(spack_cc, self.compiler.cc_pic_flag)]
@@ -332,18 +332,18 @@ class Lua(LuaImplPackage):
             self._install_unix(spec, prefix)
 
     def _install_msvc(self, spec, prefix):
-        src_dir = join_path(self.stage.source_path, 'src')
+        src_dir = join_path(self.stage.source_path, "src")
 
         mkdirp(prefix.bin)
         mkdirp(prefix.include)
         mkdirp(prefix.lib)
 
-        install(join_path(src_dir, 'lua.exe'), prefix.bin)
-        install(join_path(src_dir, 'luac.exe'), prefix.bin)
-        install(join_path(src_dir, 'lua54.dll'), prefix.bin)
-        install(join_path(src_dir, 'lua54.lib'), prefix.lib)
+        install(join_path(src_dir, "lua.exe"), prefix.bin)
+        install(join_path(src_dir, "luac.exe"), prefix.bin)
+        install(join_path(src_dir, "lua54.dll"), prefix.bin)
+        install(join_path(src_dir, "lua54.lib"), prefix.lib)
 
-        headers = ['lua.h', 'luaconf.h', 'lualib.h', 'lauxlib.h', 'lua.hpp']
+        headers = ["lua.h", "luaconf.h", "lualib.h", "lauxlib.h", "lua.hpp"]
         for header in headers:
             install(join_path(src_dir, header), prefix.include)
 
