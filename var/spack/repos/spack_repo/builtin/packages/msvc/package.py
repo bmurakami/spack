@@ -73,7 +73,6 @@ class Msvc(Package, CompilerPackage):
 
     @classmethod
     def determine_variants(cls, exes, version_str):
-        # MSVC uses same executable for both languages
         spec, extras = super().determine_variants(exes, version_str)
         extras["compilers"]["c"] = extras["compilers"]["cxx"]
         # This depends on oneapi being processed before msvc
@@ -92,8 +91,6 @@ class Msvc(Package, CompilerPackage):
 
     def setup_dependent_package(self, module, dependent_spec):
         """Populates dependent module with tooling available from VS"""
-        # We want these to resolve to the paths set by MSVC's VCVARs
-        # so no paths
         module.nmake = Executable("nmake")
         module.msbuild = Executable("msbuild")
 
@@ -102,15 +99,7 @@ class Msvc(Package, CompilerPackage):
     ) -> None:
         needs_fortran = "fortran" in dependent_spec
         self.init_msvc(needs_fortran=needs_fortran)
-        # Set the build environment variables for spack. Just using
-        # subprocess.call() doesn't work since that operates in its own
-        # environment which is destroyed (along with the adjusted variables)
-        # once the process terminates. So go the long way around: examine
-        # output, sort into dictionary, use that to make the build
-        # environment.
 
-        # vcvars can target specific sdk versions, force it to pick up concretized sdk
-        # version, if needed by spec
         if dependent_spec.name != "win-sdk" and "win-sdk" in dependent_spec:
             self.vcvars_call.sdk_ver = dependent_spec["win-sdk"].version.string
 
@@ -136,17 +125,9 @@ class Msvc(Package, CompilerPackage):
             env.set("F77", self.fortran)
 
     def init_msvc(self, needs_fortran=True):
-        # To use the MSVC compilers, VCVARS must be invoked
-        # VCVARS is located at a fixed location, referencable
-        # idiomatically by the following relative path from the
-        # compiler.
-        # Spack first finds the compilers via VSWHERE
-        # and stores their path, but their respective VCVARS
-        # file must be invoked before useage.
         env_cmds = []
         compiler_root = os.path.join(os.path.dirname(self.cc), "../../../../../..")
         vcvars_script_path = os.path.join(compiler_root, "Auxiliary", "Build", "vcvars64.bat")
-        # get current platform architecture and format for vcvars argument
         arch = spack.platforms.real_host().default.lower()
         arch = arch.replace("-", "_")
         if self.spec.satisfies("target=x86_64:"):
@@ -171,7 +152,6 @@ class Msvc(Package, CompilerPackage):
             return pth
 
         if self.fortran and needs_fortran:
-            # If this found, it sets all the vars
             oneapi_root = get_oneapi_root(self.fortran)
             if not oneapi_root:
                 raise RuntimeError(f"Non-oneAPI Fortran compiler {self.fortran} assigned to MSVC")

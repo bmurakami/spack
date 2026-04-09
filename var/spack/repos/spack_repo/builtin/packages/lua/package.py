@@ -71,11 +71,7 @@ class LuaImplPackage(MakefilePackage):
     def lua_share_dir(self):
         return os.path.join("share", self.lua_dir_name, self.__verdir())
 
-    # luarocks needs unzip for some packages (e.g. lua-luaposix)
     depends_on("unzip", type=("build", "run"))
-
-    # luarocks needs a fetcher (curl/wget), unfortunately I have not found
-    # how to force a choice for curl or wget, but curl seems the default.
     depends_on("curl", when="fetcher=curl", type="run")
     depends_on("wget", when="fetcher=wget", type="run")
 
@@ -149,7 +145,6 @@ class LuaImplPackage(MakefilePackage):
             if os.path.isdir(p):
                 self.append_paths(lua_patterns, lua_cpatterns, p)
 
-        # Always add this package's paths
         for p in (
             os.path.join(self.spec.prefix, self.lua_lib_dir),
             os.path.join(self.spec.prefix, self.lua_lib64_dir),
@@ -170,8 +165,6 @@ class LuaImplPackage(MakefilePackage):
     def setup_dependent_run_environment(
         self, env: EnvironmentModifications, dependent_spec: Spec
     ) -> None:
-        # For run time environment set only the path for dependent_spec and
-        # prepend it to LUAPATH
         lua_patterns, lua_cpatterns = self._setup_dependent_env_helper(env, dependent_spec)
 
         if dependent_spec.package.extends(self.spec):
@@ -215,7 +208,6 @@ class LuaImplPackage(MakefilePackage):
 
             luarocks('--tree=' + prefix, 'install', rock_spec_path)
         """
-        # Lua extension builds can have lua and luarocks executable functions
         module.lua = Executable(self.spec.prefix.bin.lua)
         module.luarocks = Executable(self.spec.prefix.bin.luarocks)
 
